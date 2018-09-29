@@ -7,7 +7,7 @@
 
 # Site settings
 title: 小石潭记
-brief-intro: python coder--Spider,Machine learning,Data analysis,Deeplearning
+brief-intro: python coder--Machine learning,Data analysis
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://laotanling.github.io" # the base hostname & protocol for your site
 
