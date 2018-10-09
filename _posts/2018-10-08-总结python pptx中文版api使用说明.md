@@ -8,8 +8,20 @@ prs = Presentation()
 ```
 **2.ppt模板的选择**
 
-  prs.slide_layouts[index]
-  ppt自带了常用的1-48种模板通过index选择对应的模板
+*a、使用ppt自带的模板*
+
+
+```python
+	prs = Presentation()
+  	prs.slide_layouts[index]
+```
+ppt自带了常用的1-48种模板通过index选择对应的模板
+
+*b、使用自定义ppt模板*
+```python
+prs = Presentation('template.pptx')
+```
+
 
 
 **3.新建一页幻灯片**
