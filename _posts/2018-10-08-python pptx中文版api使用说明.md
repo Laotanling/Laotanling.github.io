@@ -61,6 +61,7 @@ new_paragraph.font.underline = True  # 文字下划线new_paragraph.level = 1 # 
 
 
 ```python
+from pptx.util import Inches
 left = top = width = height = Inches(5)  
 # 预设位置及大小
 textbox = slide.shapes.add_textbox(left, top, width, height)  
@@ -120,7 +121,7 @@ table.cell(0, 1).text = 'text01'
 table.cell(1, 0).text = 'text10'
 table.cell(1, 1).text = 'text11'
 ```
-![slide](./picture/slide.jpg)
+![slide](picture/slide.jpg)
 *d、添加图表chart类*
 
 
@@ -265,7 +266,7 @@ prs.save('test.pptx')
 
 
 ```
-![slide](./picture/chart.jpg)
+![slide](picture/chart.jpg)
 
 
 
