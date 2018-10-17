@@ -1,6 +1,114 @@
 # django-rest-swagger：
 ## 一、django rest frame work
+**概念：**
+API(接口）：开发人员提供编程接口被其他人调用，他们调用之后会返回数据供其使用。
+API的类型有多种，但是想在使用最多的是REST API
 
+
+#### **RESTFUL API概念总结：**
+**1.每一个URL代表一种资源**
+
+**2.客户端和服务器之间，传递这种资源的某种表现层**
+
+**3.客户端通过四个HTTP动词，对服务器端资源进行操作，实现"表现层状态转化"。具体为：
+GET用来获取资源，POST用来新建资源（也可以用于更新资源），PUT用来更新资源，DELETE用来删除资源。** 
+
+**序列化是为了返回json格式的数据给客户端查看和使用数据，那么当客户端需要修改、增加或者删除数据时，就要把过程反过来了，也就是反序列化，把客户端提交的json格式的数据反序列化。**
+
+函数视图：
+@csrf_exempt注解来标识一个视图可以被跨域访问
+
+
+类视图：
+`url(r'^myview/$', csrf_exempt(views.MyView.as_view()), name='myview')`
+## 二、djangorestframework中的请求和响应
+
+* **Request对象**
+
+
+```python
+request.POST  # 只能处理表单数据.只能处理POST请求
+request.data  # 能处理各种数据。  可以处理'POST', 'PUT' 和 'PATCH'模式的请求
+```
+* **请求响应状态码**
+
+restframework 将原来数字类型的状态码优化为可读类型的状态码HTTP_400_BAD_REQUEST、HTTP_404_NOT_FOUND这种，极大的提高可读性。
+
+* **装饰API视图**
+
+	rest框架还提供了一个装饰器和一个类来包装视图函数，可以使用它们来写API视图
+
+	###### 1、@api_view装饰器用在基于视图的方法上
+
+	###### 2、APIView类用在基于视图的类上
+	这两个功能能够在视图中收到Request对象或者在你的Response对象中添加上下文，此外装饰器在
+	接受到输入错误的request.data时抛出ParseError或者在适当的时候返回405Method Not Allowed状态码。
+
+	原本的视图函数snippet_detail中，处理'PUT'请求的时候，需要先解析json格式的数据再进一步处理：
+
+	```python
+	data = JSONParser().parse(request)
+	serializer = SnippetSerializer(snippet, data=data)
+	#替换为
+	serializer = SnippetSerializer(data=request.data)
+	
+	return JsonResponse(serializer.data, status=201)
+	#替换为
+	return Response(serializer.data,status=status.HTTP_201_CREATED)
+	```
+
+	```python
+	from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from snippets.models import Snippet
+from snippets.serializers import SnippetSerializer
+@api_view(['GET', 'POST'])
+def snippet_list(request):
+    """
+    列出所有已经存在的snippet或者创建一个新的snippet
+    """
+    if request.method == 'GET':
+        snippets = Snippet.objects.all()
+        serializer = SnippetSerializer(snippets, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = SnippetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+	@api_view(['GET', 'PUT', 'DELETE'])
+	def snippet_detail(request, pk):
+	    """
+	    Retrieve, update or delete a snippet instance.
+	    """
+	    try:
+	        snippet = Snippet.objects.get(pk=pk)
+	    except Snippet.DoesNotExist:
+	        return Response(status=status.HTTP_404_NOT_FOUND)
+	
+	    if request.method == 'GET':
+	        serializer = SnippetSerializer(snippet)
+	        return Response(serializer.data)
+	
+	    elif request.method == 'PUT':
+	        serializer = SnippetSerializer(snippet, data=request.data)
+	        if serializer.is_valid():
+	            serializer.save()
+	            return Response(serializer.data)
+	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+	    elif request.method == 'DELETE':
+	        snippet.delete()
+	        return Response(status=status.HTTP_204_NO_CONTENT)
+        ```
+        ```python
+        
+        ```
 
 **1.get_schema\_view()添加一个模式函数解析**
 
@@ -95,7 +203,7 @@ def schema_view(request):
 **4.静态模式文件**
 
 将您的API模式编写为静态文件，使用可用的一种格式，比如Core JSON或Open API
-##二、django-rest-swagger
+##三、django-rest-swagger
 **1.#  swagger 配置项**
 
 *a、settings.py文件中配置swagger*
