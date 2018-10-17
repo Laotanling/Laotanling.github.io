@@ -22,17 +22,15 @@ GET用来获取资源，POST用来新建资源（也可以用于更新资源）�
 类视图：
 `url(r'^myview/$', csrf_exempt(views.MyView.as_view()), name='myview')`
 ## 二、djangorestframework中的请求和响应
-
 * **Request对象**
 
-
-```python
-request.POST  # 只能处理表单数据.只能处理POST请求
-request.data  # 能处理各种数据。  可以处理'POST', 'PUT' 和 'PATCH'模式的请求
-```
+	```python
+	request.POST  # 只能处理表单数据.只能处理POST请求
+	request.data  # 能处理各种数据。  可以处理'POST', 'PUT' 和 'PATCH'模式的请求
+	```
 * **请求响应状态码**
 
-restframework 将原来数字类型的状态码优化为可读类型的状态码HTTP_400_BAD_REQUEST、HTTP_404_NOT_FOUND这种，极大的提高可读性。
+	###### 	restframework 将原来数字类型的状态码优化为可读类型的状态码HTTP_400_BAD_REQUEST、HTTP_404_NOT_FOUND这种，极大的提高可读性。
 
 * **装饰API视图**
 
@@ -277,7 +275,24 @@ class SnippetDetail(mixins.RetrieveModelMixin,
 	class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
 	    queryset = Snippet.objects.all()
 	    serializer_class = SnippetSerializer
+
+
 ## 三、RESTful API添加认证和权限
+		实现目标
+		1. snippet与其创建者相互关联
+		2. 只有经过身份验证（登录）的用户才可以创建snippets
+		3. 只有创建该snippet的用户才可以对其进行更改或者删除
+		4. 未经验证的用户只具有访问（只读）的功能
+
+* 修改snippet模型
+	snippets都和它们的创建用户关联起来，给Snippet模型添加一个owner字段
+
+
+	```python
+	owner = models.ForeignKey('auth.User', related_name='snippets', 	on_delete=models.CASCADE)
+	highlighted = models.TextField()
+
+
 **1.get_schema\_view()添加一个模式函数解析**
 
 
