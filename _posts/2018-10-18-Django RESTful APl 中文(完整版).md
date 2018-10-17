@@ -44,6 +44,7 @@ GET用来获取资源，POST用来新建资源（也可以用于更新资源）�
 
 	原本的视图函数snippet_detail中，处理'PUT'请求的时候，需要先解析json格式的数据再进一步处理：
 
+
 	```python
 	data = JSONParser().parse(request)
 	serializer = SnippetSerializer(snippet, data=data)
@@ -102,7 +103,7 @@ GET用来获取资源，POST用来新建资源（也可以用于更新资源）�
 		    elif request.method == 'DELETE':
 		        snippet.delete()
 		        return Response(status=status.HTTP_204_NO_CONTENT)
-        ```
+    ```
       
         
 
