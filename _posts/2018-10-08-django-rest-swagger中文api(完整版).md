@@ -100,15 +100,13 @@ def snippet_list(request):
 	        if serializer.is_valid():
 	            serializer.save()
 	            return Response(serializer.data)
-	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 	
 	    elif request.method == 'DELETE':
 	        snippet.delete()
 	        return Response(status=status.HTTP_204_NO_CONTENT)
         ```
-        ```python
-        
-        ```
+      
         
 
 * **给请求url添加可选的格式后缀例如**
@@ -145,7 +143,7 @@ def snippet_list(request):
 * **继承APIView的类视图**
 
 
-	重构snnipets/views.p文件
+	###### 	重构snnipets/views.p文件基于类的视图把各种不同的HTTP请求分离开变成单个的方法，而不是if...elif...这样的结构
 
 
 	```python
@@ -172,8 +170,114 @@ def snippet_list(request):
 	            serializer.save()
 	            return Response(serializer.data, status=status.HTTP_201_CREATED)
 	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	        
+	        
+	class SnippetDetail(APIView):
+	    """
+	    检索查看、更新或者删除一个snippet
+	    """
+	    def get_object(self, pk):
+	        try:
+	            return Snippet.objects.get(pk=pk)
+	        except Snippet.DoesNotExist:
+	            raise Http404
+	
+	    def get(self, request, pk, format=None):
+	        snippet = self.get_object(pk)
+	        serializer = SnippetSerializer(snippet)
+	        return Response(serializer.data)
+	
+	    def put(self, request, pk, format=None):
+	        snippet = self.get_object(pk)
+	        serializer = SnippetSerializer(snippet, data=request.data)
+	        if serializer.is_valid():
+	            serializer.save()
+	            return Response(serializer.data)
+	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+	    def delete(self, request, pk, format=None):
+	        snippet = self.get_object(pk)
+	        snippet.delete()
+	        return Response(status=status.HTTP_204_NO_CONTENT)
 	```
+###### 	更改urls.py文件
 
+
+	```python
+	from django.conf.urls import url
+	from rest_framework.urlpatterns import format_suffix_patterns
+	from snippets import views
+	
+	urlpatterns = [
+	    url(r'^snippets/$', views.SnippetList.as_view()),
+	    url(r'^snippets/(?P<pk>[0-9]+)/$', views.SnippetDetail.as_view()),
+	]
+	
+	urlpatterns = format_suffix_patterns(urlpatterns
+	```
+* 	**基于继承mixins类的视图**
+
+
+	使用类视图可以把各种HTTP请求分开，此外还能够提供封装性较好方法，mixxins类，它封装了很多操作，简化代码，使用也很简单，优化snippets/views.py视图函数：
+
+
+	```python
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	from rest_framework import mixins
+	from rest_framework import generics
+	
+	class SnippetList(mixins.ListModelMixin,
+	                  mixins.CreateModelMixin,
+	                  generics.GenericAPIView):
+	    queryset = Snippet.objects.all()
+	    serializer_class = SnippetSerializer
+	
+	    def get(self, request, *args, **kwargs):
+	        return self.list(request, *args, **kwargs)
+	
+	    def post(self, request, *args, **kwargs):
+	        return self.create(request, *args, **kwargs)
+	```
+###### 	继承了 generic.GenericAPIView、mixins.ListModelMixin和mixins.CreatteModelMixin,mixins类为我们提供了list()和create()方法,使用这两个函数需要先设置queryset和serializer_class，同理另一个视图：
+```python
+class SnippetDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
+	    queryset = Snippet.objects.all()
+	    serializer_class = SnippetSerializer
+	
+	    def get(self, request, *args, **kwargs):
+	        return self.retrieve(request, *args, **kwargs)
+	
+	    def put(self, request, *args, **kwargs):
+	        return self.update(request, *args, **kwargs)
+	
+	    def delete(self, request, *args, **kwargs):
+	        return self.destroy(request, *args, **kwargs)
+```
+* **基于通用的视图类**
+
+
+	进一步优化代码连mixins类都不用了，只使用generics就可以了，代码：
+
+
+	```python
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	from rest_framework import generics
+	
+	
+	class SnippetList(generics.ListCreateAPIView):
+	    queryset = Snippet.objects.all()
+	    serializer_class = SnippetSerializer
+	
+	
+	class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+	    queryset = Snippet.objects.all()
+	    serializer_class = SnippetSerializer
+## 三、RESTful API添加认证和权限
 **1.get_schema\_view()添加一个模式函数解析**
 
 
@@ -268,7 +372,7 @@ def schema_view(request):
 **4.静态模式文件**
 
 将您的API模式编写为静态文件，使用可用的一种格式，比如Core JSON或Open API
-##三、django-rest-swagger
+##四、django-rest-swagger
 **1.#  swagger 配置项**
 
 *a、settings.py文件中配置swagger*
