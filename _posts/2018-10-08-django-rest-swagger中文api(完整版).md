@@ -109,11 +109,76 @@ def snippet_list(request):
         ```python
         
         ```
+        
+
+* **给请求url添加可选的格式后缀例如**
+
+
+	`http://127.0.0.1:8000/snippets.json`
+
+	根据请求url返回指定的json格式的Response，需要给视图函数添加关键字参数format
+
+	```python
+	#views.py文件
+	def snippet_list(request, format=None):
+	
+	#urls.py文件导入format_suffix_patterns(格式后缀模式)
+	from django.conf.urls import url
+	from rest_framework.urlpatterns import format_suffix_patterns
+	from snippets import views
+	
+	urlpatterns = [
+	    url(r'^snippets/$', views.snippet_list),
+	    url(r'^snippets/(?P<pk>[0-9]+)$', views.snippet_detail),
+	]
+	
+	urlpatterns = format_suffix_patterns(urlpatterns)
+	```
+	`@api_view(['GET','POST'])`
+
+	`@api_view(['GET','PUT','DELETE'])`
+
+
+	@api_view和APIView装饰的视图函数在接受到请求动作范围之外就会报出405 Method Not Allowed
+	
+	
+* **继承APIView的类视图**
+
+
+	重构snnipets/views.p文件
+
+
+	```python
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	from django.http import Http404
+	from rest_framework.views import APIView
+	from rest_framework.response import Response
+	from rest_framework import status
+	
+	
+	class SnippetList(APIView):
+	    """
+	    列出所有已经存在的snippet或者创建一个新的snippet
+	    """
+	    def get(self, request, format=None):
+	        snippets = Snippet.objects.all()
+	        serializer = SnippetSerializer(snippets, many=True)
+	        return Response(serializer.data)
+	
+	    def post(self, request, format=None):
+	        serializer = SnippetSerializer(data=request.data)
+	        if serializer.is_valid():
+	            serializer.save()
+	            return Response(serializer.data, status=status.HTTP_201_CREATED)
+	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	```
 
 **1.get_schema\_view()添加一个模式函数解析**
 
 
 REST框架包含一个功能自动生成一个schema，或者允许你指定一个。有许多不同的方式来为你添加一个schema
+
 
 ```python
 from rest_framework.schemas import get_schema_view
