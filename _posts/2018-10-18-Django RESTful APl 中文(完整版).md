@@ -53,56 +53,55 @@ GET用来获取资源，POST用来新建资源（也可以用于更新资源）�
 	return JsonResponse(serializer.data, status=201)
 	#替换为
 	return Response(serializer.data,status=status.HTTP_201_CREATED)
-	```
-
-	```python
-	from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from snippets.models import Snippet
-from snippets.serializers import SnippetSerializer
-@api_view(['GET', 'POST'])
-def snippet_list(request):
-    """
-    列出所有已经存在的snippet或者创建一个新的snippet
-    """
-    if request.method == 'GET':
-        snippets = Snippet.objects.all()
-        serializer = SnippetSerializer(snippets, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = SnippetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        
-	@api_view(['GET', 'PUT', 'DELETE'])
-	def snippet_detail(request, pk):
-	    """
-	    Retrieve, update or delete a snippet instance.
-	    """
-	    try:
-	        snippet = Snippet.objects.get(pk=pk)
-	    except Snippet.DoesNotExist:
-	        return Response(status=status.HTTP_404_NOT_FOUND)
 	
+	#view.py文件
+	from rest_framework import status
+	from rest_framework.decorators import api_view
+	from rest_framework.response import Response
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	@api_view(['GET', 'POST'])
+	def snippet_list(request):
+	    """
+	    列出所有已经存在的snippet或者创建一个新的snippet
+	    """
 	    if request.method == 'GET':
-	        serializer = SnippetSerializer(snippet)
+	        snippets = Snippet.objects.all()
+	        serializer = SnippetSerializer(snippets, many=True)
 	        return Response(serializer.data)
 	
-	    elif request.method == 'PUT':
-	        serializer = SnippetSerializer(snippet, data=request.data)
+	    elif request.method == 'POST':
+	        serializer = SnippetSerializer(data=request.data)
 	        if serializer.is_valid():
 	            serializer.save()
-	            return Response(serializer.data)
-	        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-	
-	    elif request.method == 'DELETE':
-	        snippet.delete()
-	        return Response(status=status.HTTP_204_NO_CONTENT)
+	            return Response(serializer.data, status=status.HTTP_201_CREATED)
+	        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	        
+	        
+		@api_view(['GET', 'PUT', 'DELETE'])
+		def snippet_detail(request, pk):
+		    """
+		    Retrieve, update or delete a snippet instance.
+		    """
+		    try:
+		        snippet = Snippet.objects.get(pk=pk)
+		    except Snippet.DoesNotExist:
+		        return Response(status=status.HTTP_404_NOT_FOUND)
+		
+		    if request.method == 'GET':
+		        serializer = SnippetSerializer(snippet)
+		        return Response(serializer.data)
+		
+		    elif request.method == 'PUT':
+		        serializer = SnippetSerializer(snippet, data=request.data)
+		        if serializer.is_valid():
+		            serializer.save()
+		            return Response(serializer.data)
+		        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+		
+		    elif request.method == 'DELETE':
+		        snippet.delete()
+		        return Response(status=status.HTTP_204_NO_CONTENT)
         ```
       
         
